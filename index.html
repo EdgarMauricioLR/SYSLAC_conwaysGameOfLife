@@ -19,12 +19,12 @@
             background-color: #000000;
             font-family: 'VT323', monospace;
             color: #00A000; /* Verde ligeramente más oscuro */
-            overscroll-behavior: none;
-            touch-action: none;
+            /* Se eliminan las reglas que bloqueaban el scroll en móviles */
         }
         canvas {
             cursor: pointer;
             border-radius: 0;
+            touch-action: none; /* Se aplica solo al canvas para dibujar sin mover la página */
         }
         #canvas-container {
              border: 2px solid #00A000;
@@ -264,10 +264,10 @@ XXX          X...X       X...X.
             fr: {
                 title: "JEU DE LA VIE", subtitle: "PAR CONWAY", btn_start: "DÉMARRER", btn_pause: "PAUSE", btn_prev: "PRÉCÉDENT", btn_clear: "NETTOYER", btn_random: "ALÉATOIRE",
                 label_generation: "GÉNÉRATION", label_speed: "VITESSE",
-                main_menu_title: "MENU", main_menu_lang: "LANGUE", main_menu_credits: "CRÉDITS", main_menu_close: "FERMER",
+                main_menu_title: "MENU", main_menu_lang: "LANGUE", main_menu_credits: "CRÉDITOS", main_menu_close: "FERMER",
                 lang_modal_title: "CHOISIR LA LANGUE", lang_modal_es: "ESPAÑOL", lang_modal_en: "ENGLISH", lang_modal_fr: "FRANÇAIS", lang_modal_pt: "PORTUGUÊS",
                 credits_title: "CRÉDITS", credits_uni: "Université Catholique Luis Amigó", credits_seed: "Groupe de recherche SYSLAC", credits_coord_label: "Coordinatrice", credits_author_label: "Auteur", credits_info_label: "POUR PLUS D'INFORMATIONS:", credits_close: "FERMER",
-                help_title: "GUIDE DU JEU", help_intro1: "Un automate cellulaire est un système de cellules sur une grille où chaque cellule change d'état en fonction de règles simples et de l'état de ses voisines.", help_intro2: "Le \"Jeu de la Vie\" est l'automate cellulaire le plus célèbre. Ce n'est pas un jeu, mais une simulation qui montre comment des motifs complexes peuvent émerger de conditions initiales simples.", help_rules_title: "RÈGLES DE BASE:", help_rule1: "Une cellule morte avec 3 voisines vivantes naît.", help_rule2: "Une cellule vivante avec moins de 2 ou plus de 3 voisines vivantes meurt.", help_rule3: "Sinon, une cellule reste dans son état actuel.",
+                help_title: "GUIDE DU JEU", help_intro1: "Un automate cellulaire est un système de cellules sur une grille où chaque cellule change d'état en fonction de règles simples et de l'état de ses voisines.", help_intro2: "Le \"Jeu de la Vie\" est l'automate cellulaire le plus célèbre. Ce n'est pas un jeu, mais une simulation qui montre comment des motifs complexes pueden émerger de conditions initiales simples.", help_rules_title: "RÈGLES DE BASE:", help_rule1: "Une cellule morte avec 3 voisines vivantes naît.", help_rule2: "Une cellule vivante avec moins de 2 ou plus de 3 voisines vivantes meurt.", help_rule3: "Sinon, une cellule reste dans son état actuel.",
                 help_patterns_title: "EXEMPLES DE MOTIFS:", help_patterns_legend: "( . = Cellule Morte, X = Cellule Vivante)", help_patterns_static: "1. STABLES (Ne changent pas):", help_patterns_oscillators: "2. OSCILLATEURS (Se répètent):", help_patterns_spaceships: "3. VAISSEAUX (Se déplacent):", help_close: "FERMER"
             },
             pt: {
