@@ -1,0 +1,474 @@
+!DOCTYPE html
+html lang=es
+head
+    meta charset=UTF-8
+    meta name=viewport content=width=device-width, initial-scale=1.0
+    titleJuego de la Vida de Conwaytitle
+    script src=httpscdn.tailwindcss.comscript
+    link rel=preconnect href=httpsfonts.googleapis.com
+    link rel=preconnect href=httpsfonts.gstatic.com crossorigin
+    link href=httpsfonts.googleapis.comcss2family=VT323&display=swap rel=stylesheet
+    
+    !-- ======================================================= --
+    !--                      SECCIÓN CSS                      --
+    !-- ======================================================= --
+    !-- Define los estilos visuales para los elementos HTML. --
+    style
+        body {
+            background-color #000000;
+            font-family 'VT323', monospace;
+            color #00A000;  Verde ligeramente más oscuro 
+            overscroll-behavior none;
+            touch-action none;
+        }
+        canvas {
+            cursor pointer;
+            border-radius 0;
+        }
+        #canvas-container {
+             border 2px solid #00A000;
+             padding 4px;
+        }
+        .retro-btn {
+            background-color transparent;
+            border 2px solid #00A000;
+            color #00A000;
+            padding 10px;
+            font-size 1.25rem;
+            transition all 0.2s;
+            user-select none;  Evita la selección de texto al mantener presionado 
+        }
+        .retro-btnhover, .retro-btn.active {
+            background-color #00A000;
+            color #000000;
+        }
+        .ui-panel {
+            border 2px solid #00A000;
+            background-color #000;
+            padding 0.75rem;
+        }
+        input[type=range] {
+            -webkit-appearance none;
+            appearance none;
+            width 100%;
+            height 4px;
+            background #005000;  Verde más oscuro para el slider 
+            outline none;
+        }
+        input[type=range]-webkit-slider-thumb {
+            -webkit-appearance none;
+            appearance none;
+            width 20px;
+            height 20px;
+            background #00A000;
+            cursor pointer;
+            border 2px solid #000;
+        }
+        .modal-overlay {
+            position fixed;
+            top 0;
+            left 0;
+            width 100%;
+            height 100%;
+            background-color rgba(0,0,0,0.8);
+            display flex;
+            justify-content center;
+            align-items center;
+            z-index 10;
+        }
+        .modal-content {
+            background-color #000;
+            border 2px solid #00A000;
+            padding 1.5rem;
+            width 90%;
+            max-width 500px;
+            max-height 80vh;
+            overflow-y auto;
+        }
+        .top-bar-btn {
+            font-size 2.5rem;
+            line-height 1;
+            cursor pointer;
+        }
+    style
+head
+body class=flex flex-col items-center justify-center min-h-screen p-4
+
+    !-- ======================================================= --
+    !--                      SECCIÓN HTML                     --
+    !-- ======================================================= --
+    !-- Define la estructura y los elementos visibles de la página. --
+    
+    div class=w-full max-w-lg mx-auto text-center relative
+         !-- Barra Superior con Menús --
+        div class=w-full flex justify-between items-center px-2 absolute top-6
+            div id=menuBtn class=top-bar-btn☰div
+            div id=helpBtn class=top-bar-btndiv
+        div
+        h1 class=text-4xl mt-6 mb-2 data-lang-key=titleJUEGO DE LA VIDAh1
+        p class=text-lg mb-4 data-lang-key=subtitleDE CONWAYp
+    div
+
+    div id=canvas-container class=w-full max-w-lg aspect-square my-4
+        canvas id=gameCanvascanvas
+    div
+
+    div class=w-full max-w-lg grid grid-cols-2 smgrid-cols-4 gap-3 text-center
+        button id=startStopBtn class=retro-btn data-lang-key=btn_startINICIARbutton
+        button id=prevBtn class=retro-btn data-lang-key=btn_prevANTERIORbutton
+        button id=clearBtn class=retro-btn data-lang-key=btn_clearLIMPIARbutton
+        button id=randomBtn class=retro-btn data-lang-key=btn_randomALEATORIObutton
+    div
+    
+    div class=w-full max-w-lg ui-panel mt-3
+         div class=flex justify-between items-center mb-2 text-xl
+            spanspan data-lang-key=label_generationGENERACIÓNspan span id=generationCounter0spanspan
+            spanspan data-lang-key=label_speedVELOCIDADspan span id=speedValue500spanMSspan
+        div
+        input id=speedSlider type=range min=50 max=1000 value=500 step=50 class=w-full
+    div
+
+    !-- Modal del Menú Principal --
+    div id=mainMenuModal class=modal-overlay hidden
+        div class=modal-content text-center
+            h2 class=text-3xl mb-6 data-lang-key=main_menu_titleMENÚh2
+            button id=languageBtn class=retro-btn w-full mb-4 data-lang-key=main_menu_langIDIOMAbutton
+            button id=creditsBtn class=retro-btn w-full data-lang-key=main_menu_creditsCRÉDITOSbutton
+            button id=closeMenuBtn class=retro-btn w-full mt-6 data-lang-key=main_menu_closeCERRARbutton
+        div
+    div
+    
+    !-- Modal de Idioma --
+    div id=languageModal class=modal-overlay hidden
+        div class=modal-content text-center
+             h2 class=text-3xl mb-6 data-lang-key=lang_modal_titleSELECCIONAR IDIOMAh2
+             button class=lang-select-btn retro-btn w-full mb-4 data-lang=es data-lang-key=lang_modal_esESPAÑOLbutton
+             button class=lang-select-btn retro-btn w-full mb-4 data-lang=en data-lang-key=lang_modal_enENGLISHbutton
+             button class=lang-select-btn retro-btn w-full mb-4 data-lang=fr data-lang-key=lang_modal_frFRANÇAISbutton
+             button class=lang-select-btn retro-btn w-full data-lang=pt data-lang-key=lang_modal_ptPORTUGUÊSbutton
+             button id=closeLangBtn class=retro-btn w-full mt-6 data-lang-key=main_menu_closeCERRARbutton
+        div
+    div
+
+    !-- Modal de Créditos --
+    div id=creditsModal class=modal-overlay hidden
+        div class=modal-content
+            h2 class=text-3xl mb-4 text-center data-lang-key=credits_titleCRÉDITOSh2
+            p class=mb-2 text-xl data-lang-key=credits_uniUniversidad Católica Luis Amigóp
+            p class=mb-4 text-xl data-lang-key=credits_seedSemillero de investigación SYSLACp
+            p class=mb-2 text-xlspan data-lang-key=credits_coord_labelCoordinadoraspan Ingrid Durley Torres Pardop
+            p class=mb-4 text-xlspan data-lang-key=credits_author_labelAutorspan Edgar Mauricio Londoño Rodríguezp
+            p class=mb-2 text-xl data-lang-key=credits_info_labelPARA MÁS INFORMACIÓNp
+            p class=text-lg- ingrid.torrespa@amigo.edu.cop
+            p class=text-lg- edgar.londonoro@amigo.edu.cop
+            button id=closeCreditsBtn class=retro-btn w-full mt-6 data-lang-key=credits_closeCERRARbutton
+        div
+    div
+
+    !-- Modal de Ayuda --
+    div id=helpModal class=modal-overlay hidden
+        div class=modal-content
+            h2 class=text-3xl mb-4 text-center data-lang-key=help_titleGUÍA DEL JUEGOh2
+            p class=text-lg mb-4 data-lang-key=help_intro1Un autómata celular es un sistema de celdas en una cuadrícula donde cada celda cambia de estado basándose en reglas simples y en el estado de sus vecinas.p
+            p class=text-lg mb-4 data-lang-key=help_intro2El Juego de la Vida es el autómata celular más famoso. No es un juego como tal, sino una simulación que muestra cómo patrones complejos pueden surgir de condiciones iniciales simples.p
+            h3 class=text-2xl mb-2 data-lang-key=help_rules_titleREGLAS BÁSICASh3
+            ol class=list-decimal list-inside text-lg mb-4
+                li data-lang-key=help_rule1Una célula muerta con 3 vecinas vivas, nace.li
+                li data-lang-key=help_rule2Una célula viva con menos de 2 o más de 3 vecinas vivas, muere.li
+                li data-lang-key=help_rule3En otro caso, la célula permanece igual.li
+            ol
+            h3 class=text-2xl mb-2 data-lang-key=help_patterns_titlePATRONES DE EJEMPLOh3
+            p class=text-lg mb-2 data-lang-key=help_patterns_legend(span class=font-bold.span = Célula Muerta, span class=font-boldXspan = Célula Viva)p
+            p class=text-lg mb-2 data-lang-key=help_patterns_static1. ESTÁTICOS (No cambian)p
+            pre class=mb-4Bloque  Bote    Panal
+XX       XX.      .XX.
+XX       X.X      X..X
+         .X.      .XX.pre
+            p class=text-lg mb-2 data-lang-key=help_patterns_oscillators2. OSCILADORES (Se repiten)p
+            pre class=mb-4Parpadeador Sapo    Faro
+.X.          .XXX    XX..
+.X.          XXX.    X...
+.X.                  ..X.
+                     ..XXpre
+             p class=text-lg mb-2 data-lang-key=help_patterns_spaceships3. NAVES ESPACIALES (Se mueven)p
+            pre class=mb-4Planeador   LWSS        MWSS
+.X.          X..X.       ...X.
+..X          ....X       X....X
+XXX          X...X       X...X.
+             .XXXX       .XXXX.pre
+            button id=closeHelpBtn class=retro-btn w-full mt-6 data-lang-key=help_closeCERRARbutton
+        div
+    div
+
+
+    !-- ======================================================= --
+    !--                   SECCIÓN JAVASCRIPT                    --
+    !-- ======================================================= --
+    script
+         1. CONFIGURACIÓN INICIAL
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvas-container');
+        const allLangElements = document.querySelectorAll('[data-lang-key]');
+        
+        const startStopBtn = document.getElementById('startStopBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const randomBtn = document.getElementById('randomBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const generationCounter = document.getElementById('generationCounter');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+        
+        const menuBtn = document.getElementById('menuBtn');
+        const helpBtn = document.getElementById('helpBtn');
+        
+        const mainMenuModal = document.getElementById('mainMenuModal');
+        const closeMenuBtn = document.getElementById('closeMenuBtn');
+        const languageBtn = document.getElementById('languageBtn');
+        const creditsBtn = document.getElementById('creditsBtn');
+
+        const languageModal = document.getElementById('languageModal');
+        const closeLangBtn = document.getElementById('closeLangBtn');
+        const langSelectBtns = document.querySelectorAll('.lang-select-btn');
+
+        const creditsModal = document.getElementById('creditsModal');
+        const closeCreditsBtn = document.getElementById('closeCreditsBtn');
+        
+        const helpModal = document.getElementById('helpModal');
+        const closeHelpBtn = document.getElementById('closeHelpBtn');
+
+        const resolution = 15;
+        let cols, rows, grid, isRunning = false, generation = 0, timeoutId, simulationSpeed = 500, history = [], prevInterval = null;
+
+         Objeto de Traducciones
+        const translations = {
+            es {
+                title JUEGO DE LA VIDA, subtitle DE CONWAY, btn_start INICIAR, btn_pause PAUSAR, btn_prev ANTERIOR, btn_clear LIMPIAR, btn_random ALEATORIO,
+                label_generation GENERACIÓN, label_speed VELOCIDAD,
+                main_menu_title MENÚ, main_menu_lang IDIOMA, main_menu_credits CRÉDITOS, main_menu_close CERRAR,
+                lang_modal_title SELECCIONAR IDIOMA, lang_modal_es ESPAÑOL, lang_modal_en ENGLISH, lang_modal_fr FRANÇAIS, lang_modal_pt PORTUGUÊS,
+                credits_title CRÉDITOS, credits_uni Universidad Católica Luis Amigó, credits_seed Semillero de investigación SYSLAC, credits_coord_label Coordinadora, credits_author_label Autor, credits_info_label PARA MÁS INFORMACIÓN, credits_close CERRAR,
+                help_title GUÍA DEL JUEGO, help_intro1 Un autómata celular es un sistema de celdas en una cuadrícula donde cada celda cambia de estado basándose en reglas simples y en el estado de sus vecinas., help_intro2 El Juego de la Vida es el autómata celular más famoso. No es un juego como tal, sino una simulación que muestra cómo patrones complejos pueden surgir de condiciones iniciales simples., help_rules_title REGLAS BÁSICAS, help_rule1 Una célula muerta con 3 vecinas vivas, nace., help_rule2 Una célula viva con menos de 2 o más de 3 vecinas vivas, muere., help_rule3 En otro caso, la célula permanece igual.,
+                help_patterns_title PATRONES DE EJEMPLO, help_patterns_legend ( . = Célula Muerta, X = Célula Viva), help_patterns_static 1. ESTÁTICOS (No cambian), help_patterns_oscillators 2. OSCILADORES (Se repiten), help_patterns_spaceships 3. NAVES ESPACIALES (Se mueven), help_close CERRAR
+            },
+            en {
+                title GAME OF LIFE, subtitle BY CONWAY, btn_start START, btn_pause PAUSE, btn_prev PREVIOUS, btn_clear CLEAR, btn_random RANDOM,
+                label_generation GENERATION, label_speed SPEED,
+                main_menu_title MENU, main_menu_lang LANGUAGE, main_menu_credits CREDITS, main_menu_close CLOSE,
+                lang_modal_title SELECT LANGUAGE, lang_modal_es ESPAÑOL, lang_modal_en ENGLISH, lang_modal_fr FRANÇAIS, lang_modal_pt PORTUGUÊS,
+                credits_title CREDITS, credits_uni Luis Amigó Catholic University, credits_seed SYSLAC Research Hotbed, credits_coord_label Coordinator, credits_author_label Author, credits_info_label FOR MORE INFORMATION, credits_close CLOSE,
+                help_title GAME GUIDE, help_intro1 A cellular automaton is a system of cells on a grid where each cell changes state based on simple rules and the state of its neighbors., help_intro2 The Game of Life is the most famous cellular automaton. It is not a game, but a simulation that shows how complex patterns can emerge from simple initial conditions., help_rules_title BASIC RULES, help_rule1 A dead cell with 3 live neighbours becomes a live cell., help_rule2 A live cell with fewer than 2 or more than 3 live neighbours dies., help_rule3 Otherwise, a cell stays in its current state.,
+                help_patterns_title EXAMPLE PATTERNS, help_patterns_legend ( . = Dead Cell, X = Live Cell), help_patterns_static 1. STILL LIFES (Don't change), help_patterns_oscillators 2. OSCILLATORS (Repeat), help_patterns_spaceships 3. SPACESHIPS (Move), help_close CLOSE
+            },
+            fr {
+                title JEU DE LA VIE, subtitle PAR CONWAY, btn_start DÉMARRER, btn_pause PAUSE, btn_prev PRÉCÉDENT, btn_clear NETTOYER, btn_random ALÉATOIRE,
+                label_generation GÉNÉRATION, label_speed VITESSE,
+                main_menu_title MENU, main_menu_lang LANGUE, main_menu_credits CRÉDITS, main_menu_close FERMER,
+                lang_modal_title CHOISIR LA LANGUE, lang_modal_es ESPAÑOL, lang_modal_en ENGLISH, lang_modal_fr FRANÇAIS, lang_modal_pt PORTUGUÊS,
+                credits_title CRÉDITS, credits_uni Université Catholique Luis Amigó, credits_seed Groupe de recherche SYSLAC, credits_coord_label Coordinatrice, credits_author_label Auteur, credits_info_label POUR PLUS D'INFORMATIONS, credits_close FERMER,
+                help_title GUIDE DU JEU, help_intro1 Un automate cellulaire est un système de cellules sur une grille où chaque cellule change d'état en fonction de règles simples et de l'état de ses voisines., help_intro2 Le Jeu de la Vie est l'automate cellulaire le plus célèbre. Ce n'est pas un jeu, mais une simulation qui montre comment des motifs complexes peuvent émerger de conditions initiales simples., help_rules_title RÈGLES DE BASE, help_rule1 Une cellule morte avec 3 voisines vivantes naît., help_rule2 Une cellule vivante avec moins de 2 ou plus de 3 voisines vivantes meurt., help_rule3 Sinon, une cellule reste dans son état actuel.,
+                help_patterns_title EXEMPLES DE MOTIFS, help_patterns_legend ( . = Cellule Morte, X = Cellule Vivante), help_patterns_static 1. STABLES (Ne changent pas), help_patterns_oscillators 2. OSCILLATEURS (Se répètent), help_patterns_spaceships 3. VAISSEAUX (Se déplacent), help_close FERMER
+            },
+            pt {
+                title JOGO DA VIDA, subtitle DE CONWAY, btn_start INICIAR, btn_pause PAUSAR, btn_prev ANTERIOR, btn_clear LIMPAR, btn_random ALEATÓRIO,
+                label_generation GERAÇÃO, label_speed VELOCIDADE,
+                main_menu_title MENU, main_menu_lang IDIOMA, main_menu_credits CRÉDITOS, main_menu_close FECHAR,
+                lang_modal_title SELECIONAR IDIOMA, lang_modal_es ESPAÑOL, lang_modal_en ENGLISH, lang_modal_fr FRANÇAIS, lang_modal_pt PORTUGUÊS,
+                credits_title CRÉDITOS, credits_uni Universidade Católica Luis Amigó, credits_seed Grupo de Pesquisa SYSLAC, credits_coord_label Coordenadora, credits_author_label Autor, credits_info_label PARA MAIS INFORMAÇÕES, credits_close FECHAR,
+                help_title GUIA DO JOGO, help_intro1 Um autômato celular é um sistema de células em uma grade onde cada célula muda de estado com base em regras simples e no estado de suas vizinhas., help_intro2 O Jogo da Vida é o autômato celular mais famoso. Não é um jogo, mas uma simulação que mostra como padrões complexos podem surgir de condições iniciais simples., help_rules_title REGRAS BÁSICAS, help_rule1 Uma célula morta com 3 vizinhas vivas, nasce., help_rule2 Uma célula viva com menos de 2 ou mais de 3 vizinhas vivas, morre., help_rule3 Caso contrário, a célula permanece no mesmo estado.,
+                help_patterns_title EXEMPLOS DE PADRÕES, help_patterns_legend ( . = Célula Morta, X = Célula Viva), help_patterns_static 1. ESTÁTICOS (Não mudam), help_patterns_oscillators 2. OSCILADORES (Se repetem), help_patterns_spaceships 3. NAVES ESPACIAIS (Se movem), help_close FECHAR
+            }
+        };
+
+         2. INICIALIZACIÓN
+        function setupCanvas() {
+            const size = container.clientWidth - 8;
+            canvas.width = size; canvas.height = size;
+            cols = Math.floor(canvas.width  resolution);
+            rows = Math.floor(canvas.height  resolution);
+            grid = createGrid(cols, rows);
+            drawGrid();
+        }
+
+        function createGrid(cols, rows) {
+            return new Array(cols).fill(null).map(() = new Array(rows).fill(0));
+        }
+        
+         3. LÓGICA DE SIMULACIÓN Y TRADUCCIÓN
+        function setLanguage(lang) {
+            allLangElements.forEach(el = {
+                const key = el.dataset.langKey;
+                if (translations[lang] && translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+        }
+        
+        function update() {
+            history.push(JSON.parse(JSON.stringify(grid)));
+            if (history.length  100) history.shift();
+            let nextGrid = createGrid(cols, rows);
+            for (let i = 0; i  cols; i++) {
+                for (let j = 0; j  rows; j++) {
+                    const state = grid[i][j];
+                    const neighbors = countNeighbors(grid, i, j);
+                    if (state === 0 && neighbors === 3) nextGrid[i][j] = 1;
+                    else if (state === 1 && (neighbors  2  neighbors  3)) nextGrid[i][j] = 0;
+                    else nextGrid[i][j] = state;
+                }
+            }
+            grid = nextGrid;
+            generation++;
+            generationCounter.textContent = generation;
+        }
+
+        function countNeighbors(grid, x, y) {
+            let sum = 0;
+            for (let i = -1; i  2; i++) {
+                for (let j = -1; j  2; j++) {
+                    if (i === 0 && j === 0) continue;
+                    sum += grid[(x + i + cols) % cols][(y + j + rows) % rows];
+                }
+            }
+            return sum;
+        }
+
+         4. DIBUJO Y ANIMACIÓN
+        function drawGrid() {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#005000';
+            ctx.fillStyle = '#00A000';
+            for (let i = 0; i  cols; i++) {
+                for (let j = 0; j  rows; j++) {
+                    const x = i  resolution, y = j  resolution;
+                    ctx.strokeRect(x, y, resolution, resolution);
+                    if (grid[i][j] === 1) ctx.fillRect(x, y, resolution, resolution);
+                }
+            }
+        }
+
+        function gameLoop() {
+            if (!isRunning) return;
+            update();
+            drawGrid();
+            timeoutId = setTimeout(gameLoop, simulationSpeed);
+        }
+        
+        function pauseSimulation() {
+            isRunning = false;
+            startStopBtn.dataset.langKey = 'btn_start';
+            setLanguage(document.documentElement.lang);
+            startStopBtn.classList.remove('active');
+            clearTimeout(timeoutId);
+        }
+
+         5. MANEJO DE EVENTOS
+        function handleCanvasClick(event) {
+            event.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const x = (event.clientX  event.touches[0].clientX) - rect.left;
+            const y = (event.clientY  event.touches[0].clientY) - rect.top;
+            const col = Math.floor(x  resolution), row = Math.floor(y  resolution);
+            if (col = 0 && col  cols && row = 0 && row  rows) {
+                grid[col][row] = grid[col][row]  0  1;
+                if (!isRunning) drawGrid();
+            }
+        }
+
+        startStopBtn.addEventListener('click', () = {
+            if (isRunning) {
+                pauseSimulation();
+            } else {
+                isRunning = true;
+                startStopBtn.dataset.langKey = 'btn_pause';
+                setLanguage(document.documentElement.lang);
+                startStopBtn.classList.add('active');
+                gameLoop();
+            }
+        });
+        
+        const goBack = () = {
+            if (history.length  0) {
+                if(isRunning) pauseSimulation();
+                grid = history.pop();
+                generation = Math.max(0, generation - 1);
+                generationCounter.textContent = generation;
+                drawGrid();
+            }
+        };
+
+        const stopGoingBack = () = {
+            clearInterval(prevInterval);
+            prevInterval = null;
+        };
+
+        prevBtn.addEventListener('mousedown', () = { goBack(); prevInterval = setInterval(goBack, 100); });
+        prevBtn.addEventListener('touchstart', (e) = { e.preventDefault(); goBack(); prevInterval = setInterval(goBack, 100); });
+        prevBtn.addEventListener('mouseup', stopGoingBack);
+        prevBtn.addEventListener('mouseleave', stopGoingBack);
+        prevBtn.addEventListener('touchend', stopGoingBack);
+
+        clearBtn.addEventListener('click', () = {
+            grid = createGrid(cols, rows);
+            generation = 0;
+            generationCounter.textContent = generation;
+            history = [];
+            if (!isRunning) drawGrid();
+        });
+
+        randomBtn.addEventListener('click', () = {
+            for (let i = 0; i  cols; i++) {
+                for (let j = 0; j  rows; j++) {
+                    grid[i][j] = Math.random()  0.75  1  0;
+                }
+            }
+            generation = 0;
+            generationCounter.textContent = generation;
+            history = [];
+            if (!isRunning) drawGrid();
+        });
+
+        speedSlider.addEventListener('input', (e) = {
+            simulationSpeed = 1050 - e.target.value;
+            speedValue.textContent = simulationSpeed;
+        });
+
+         Eventos de Modales
+        menuBtn.addEventListener('click', () = mainMenuModal.classList.remove('hidden'));
+        helpBtn.addEventListener('click', () = helpModal.classList.remove('hidden'));
+        closeMenuBtn.addEventListener('click', () = mainMenuModal.classList.add('hidden'));
+        
+        languageBtn.addEventListener('click', () = {
+            mainMenuModal.classList.add('hidden');
+            languageModal.classList.remove('hidden');
+        });
+        creditsBtn.addEventListener('click', () = {
+            mainMenuModal.classList.add('hidden');
+            creditsModal.classList.remove('hidden');
+        });
+
+        langSelectBtns.forEach(btn = {
+            btn.addEventListener('click', () = {
+                const selectedLang = btn.dataset.lang;
+                document.documentElement.lang = selectedLang;
+                setLanguage(selectedLang);
+                languageModal.classList.add('hidden');
+            });
+        });
+        
+        closeLangBtn.addEventListener('click', () = languageModal.classList.add('hidden'));
+        closeCreditsBtn.addEventListener('click', () = creditsModal.classList.add('hidden'));
+        closeHelpBtn.addEventListener('click', () = helpModal.classList.add('hidden'));
+
+        canvas.addEventListener('click', handleCanvasClick);
+        canvas.addEventListener('touchmove', handleCanvasClick);
+        window.addEventListener('resize', setupCanvas);
+
+         6. EJECUCIÓN INICIAL
+        setupCanvas();
+        setLanguage('es');
+
+    script
+body
+html
